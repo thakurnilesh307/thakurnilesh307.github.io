@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CMT Hiring Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-6">
+  <h1 class="text-3xl font-bold mb-6">CMT Hiring Dashboard</h1>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white shadow rounded-xl p-4">
+      <div class="text-sm text-gray-500">Open Roles</div>
+      <div class="text-2xl font-bold">24</div>
+    </div>
+    <div class="bg-white shadow rounded-xl p-4">
+      <div class="text-sm text-gray-500">Avg Time to Fill</div>
+      <div class="text-2xl font-bold">18 days</div>
+    </div>
+    <div class="bg-white shadow rounded-xl p-4">
+      <div class="text-sm text-gray-500">Offer Acceptance Rate</div>
+      <div class="text-2xl font-bold">82%</div>
+    </div>
+    <div class="bg-white shadow rounded-xl p-4">
+      <div class="text-sm text-gray-500">Candidate Diversity</div>
+      <div class="text-2xl font-bold">42% URM</div>
+    </div>
+  </div>
+
+  <!-- Form to Add Candidate -->
+  <div class="bg-white shadow rounded-xl p-4 mb-6">
+    <h2 class="text-lg font-semibold mb-2">Add Candidate</h2>
+    <form id="candidateForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <input type="text" id="name" placeholder="Full Name" required class="border p-2 rounded" />
+      <input type="text" id="role" placeholder="Role Applied For" required class="border p-2 rounded" />
+      <input type="text" id="stage" placeholder="Stage (Applied, Interviewed...)" required class="border p-2 rounded" />
+      <input type="text" id="source" placeholder="Source (Referral, LinkedIn...)" required class="border p-2 rounded" />
+      <button type="submit" class="col-span-1 md:col-span-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Add Candidate</button>
+    </form>
+  </div>
+
+  <!-- Candidate Table -->
+  <div class="bg-white shadow rounded-xl p-4 mb-6">
+    <h2 class="text-lg font-semibold mb-2">Candidate Data</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full table-auto text-left border border-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-2 border">Name</th>
+            <th class="p-2 border">Role</th>
+            <th class="p-2 border">Stage</th>
+            <th class="p-2 border">Source</th>
+          </tr>
+        </thead>
+        <tbody id="candidateTableBody">
+          <!-- Candidates will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white shadow rounded-xl p-4">
+      <h2 class="text-lg font-semibold mb-2">Candidate Pipeline</h2>
+      <canvas id="pipelineChart" height="250"></canvas>
+    </div>
+
+    <div class="bg-white shadow rounded-xl p-4">
+      <h2 class="text-lg font-semibold mb-2">Source of Hire</h2>
+      <canvas id="sourceChart" height="250"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const candidateTable = document.getElementById('candidateTableBody');
+    const pipelineChartCtx = document.getElementById('pipelineChart').getContext('2d');
+    const sourceChartCtx = document.getElementById('sourceChart').getContext('2d');
+
+    const stageData = {
+      "Applied": 500,
+      "Screened": 200,
+      "Interviewed": 80,
+      "Offer Sent": 25,
+      "Hired": 15
+    };
+
+    const sourceData = {
+      "Referrals": 35,
+      "LinkedIn": 40,
+      "Campus": 15,
+      "Other": 10
+    };
+
+    const pipelineChart = new Chart(pipelineChartCtx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(stageData),
+        datasets: [{
+          label: 'Candidates',
+          data: Object.values(stageData),
+          backgroundColor: '#3b82f6'
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    const sourceChart = new Chart(sourceChartCtx, {
+      type: 'pie',
+      data: {
+        labels: Object.keys(sourceData),
+        datasets: [{
+          data: Object.values(sourceData),
+          backgroundColor: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+        }]
+      }
+    });
+
+    // Add candidate logic
+    document.getElementById('candidateForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const role = document.getElementById('role').value;
+      const stage = document.getElementById('stage').value;
+      const source = document.getElementById('source').value;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="p-2 border">${name}</td>
+        <td class="p-2 border">${role}</td>
+        <td class="p-2 border">${stage}</td>
+        <td class="p-2 border">${source}</td>
+      `;
+      candidateTable.appendChild(row);
+
+      // update pipeline chart
+      if (stageData[stage]) {
+        stageData[stage]++;
+      } else {
+        stageData[stage] = 1;
+        pipelineChart.data.labels.push(stage);
+      }
+      pipelineChart.data.datasets[0].data = Object.values(stageData);
+      pipelineChart.update();
+
+      // update source chart
+      if (sourceData[source]) {
+        sourceData[source]++;
+      } else {
+        sourceData[source] = 1;
+        sourceChart.data.labels.push(source);
+      }
+      sourceChart.data.datasets[0].data = Object.values(sourceData);
+      sourceChart.update();
+
+      // clear form
+      this.reset();
+    });
+  </script>
+</body>
+</html>
