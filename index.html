@@ -6,94 +6,109 @@
   <title>CMT Hiring Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    input, button {
+      outline: none;
+    }
+    table th, table td {
+      white-space: nowrap;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-900 p-6">
-  <h1 class="text-3xl font-bold mb-6">CMT Hiring Dashboard</h1>
+<body class="bg-gray-50 text-gray-900 p-6">
+
+  <header class="mb-8">
+    <h1 class="text-4xl font-bold text-blue-700">CMT Hiring Dashboard</h1>
+    <p class="text-gray-500 mt-1">Visualize and manage candidate data effortlessly</p>
+  </header>
 
   <!-- Summary Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-white shadow rounded-xl p-4">
-      <div class="text-sm text-gray-500">Open Roles</div>
-      <div class="text-2xl font-bold">24</div>
+  <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white shadow-sm rounded-2xl p-5 border border-gray-200">
+      <h3 class="text-gray-500 text-sm">Open Roles</h3>
+      <p class="text-3xl font-semibold text-blue-600">24</p>
     </div>
-    <div class="bg-white shadow rounded-xl p-4">
-      <div class="text-sm text-gray-500">Avg Time to Fill</div>
-      <div class="text-2xl font-bold">18 days</div>
+    <div class="bg-white shadow-sm rounded-2xl p-5 border border-gray-200">
+      <h3 class="text-gray-500 text-sm">Avg Time to Fill</h3>
+      <p class="text-3xl font-semibold text-blue-600">18 days</p>
     </div>
-    <div class="bg-white shadow rounded-xl p-4">
-      <div class="text-sm text-gray-500">Offer Acceptance Rate</div>
-      <div class="text-2xl font-bold">82%</div>
+    <div class="bg-white shadow-sm rounded-2xl p-5 border border-gray-200">
+      <h3 class="text-gray-500 text-sm">Offer Acceptance Rate</h3>
+      <p class="text-3xl font-semibold text-blue-600">82%</p>
     </div>
-    <div class="bg-white shadow rounded-xl p-4">
-      <div class="text-sm text-gray-500">Candidate Diversity</div>
-      <div class="text-2xl font-bold">42% URM</div>
+    <div class="bg-white shadow-sm rounded-2xl p-5 border border-gray-200">
+      <h3 class="text-gray-500 text-sm">Candidate Diversity</h3>
+      <p class="text-3xl font-semibold text-blue-600">42% URM</p>
     </div>
-  </div>
+  </section>
 
-  <!-- Form to Add Candidate -->
-  <div class="bg-white shadow rounded-xl p-4 mb-6">
-    <h2 class="text-lg font-semibold mb-2">Add Candidate</h2>
+  <!-- Candidate Form -->
+  <section class="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Add New Candidate</h2>
     <form id="candidateForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <input type="text" id="name" placeholder="Full Name" required class="border p-2 rounded" />
-      <input type="text" id="role" placeholder="Role Applied For" required class="border p-2 rounded" />
-      <input type="text" id="stage" placeholder="Stage (Applied, Interviewed...)" required class="border p-2 rounded" />
-      <input type="text" id="source" placeholder="Source (Referral, LinkedIn...)" required class="border p-2 rounded" />
-      <button type="submit" class="col-span-1 md:col-span-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Add Candidate</button>
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1" for="name">Full Name</label>
+        <input id="name" type="text" placeholder="e.g., Jane Doe" required class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1" for="role">Role</label>
+        <input id="role" type="text" placeholder="e.g., Data Analyst" required class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1" for="stage">Stage</label>
+        <input id="stage" type="text" placeholder="e.g., Interviewed" required class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1" for="source">Source</label>
+        <input id="source" type="text" placeholder="e.g., LinkedIn" required class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400" />
+      </div>
+      <div class="md:col-span-2">
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition">Add Candidate</button>
+      </div>
     </form>
-  </div>
+  </section>
 
   <!-- Candidate Table -->
-  <div class="bg-white shadow rounded-xl p-4 mb-6">
-    <h2 class="text-lg font-semibold mb-2">Candidate Data</h2>
-    <div class="overflow-x-auto">
-      <table class="w-full table-auto text-left border border-gray-200">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="p-2 border">Name</th>
-            <th class="p-2 border">Role</th>
-            <th class="p-2 border">Stage</th>
-            <th class="p-2 border">Source</th>
-          </tr>
-        </thead>
-        <tbody id="candidateTableBody">
-          <!-- Candidates will be inserted here -->
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <section class="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 mb-8 overflow-x-auto">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Candidate Dataset</h2>
+    <table class="w-full border text-sm text-left">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="p-2 border border-gray-200">Name</th>
+          <th class="p-2 border border-gray-200">Role</th>
+          <th class="p-2 border border-gray-200">Stage</th>
+          <th class="p-2 border border-gray-200">Source</th>
+        </tr>
+      </thead>
+      <tbody id="candidateTableBody" class="bg-white">
+        <!-- New candidates get inserted here -->
+      </tbody>
+    </table>
+  </section>
 
   <!-- Charts -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="bg-white shadow rounded-xl p-4">
-      <h2 class="text-lg font-semibold mb-2">Candidate Pipeline</h2>
-      <canvas id="pipelineChart" height="250"></canvas>
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="bg-white border border-gray-200 shadow-sm rounded-2xl p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Candidate Pipeline</h3>
+      <canvas id="pipelineChart" height="200"></canvas>
     </div>
-
-    <div class="bg-white shadow rounded-xl p-4">
-      <h2 class="text-lg font-semibold mb-2">Source of Hire</h2>
-      <canvas id="sourceChart" height="250"></canvas>
+    <div class="bg-white border border-gray-200 shadow-sm rounded-2xl p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Source of Hire</h3>
+      <canvas id="sourceChart" height="200"></canvas>
     </div>
-  </div>
+  </section>
 
+  <!-- Scripts -->
   <script>
     const candidateTable = document.getElementById('candidateTableBody');
     const pipelineChartCtx = document.getElementById('pipelineChart').getContext('2d');
     const sourceChartCtx = document.getElementById('sourceChart').getContext('2d');
 
-    const stageData = {
-      "Applied": 500,
-      "Screened": 200,
-      "Interviewed": 80,
-      "Offer Sent": 25,
-      "Hired": 15
-    };
-
-    const sourceData = {
-      "Referrals": 35,
-      "LinkedIn": 40,
-      "Campus": 15,
-      "Other": 10
-    };
+    const stageData = { "Applied": 500, "Screened": 200, "Interviewed": 80, "Offer Sent": 25, "Hired": 15 };
+    const sourceData = { "Referrals": 35, "LinkedIn": 40, "Campus": 15, "Other": 10 };
 
     const pipelineChart = new Chart(pipelineChartCtx, {
       type: 'bar',
@@ -107,22 +122,30 @@
       },
       options: {
         indexAxis: 'y',
-        plugins: { legend: { display: false } }
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: { drawOnChartArea: false } },
+          y: { grid: { drawOnChartArea: false } }
+        }
       }
     });
 
     const sourceChart = new Chart(sourceChartCtx, {
-      type: 'pie',
+      type: 'doughnut',
       data: {
         labels: Object.keys(sourceData),
         datasets: [{
           data: Object.values(sourceData),
-          backgroundColor: ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+          backgroundColor: ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"]
         }]
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' }
+        }
       }
     });
 
-    // Add candidate logic
     document.getElementById('candidateForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const name = document.getElementById('name').value;
@@ -132,36 +155,27 @@
 
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td class="p-2 border">${name}</td>
-        <td class="p-2 border">${role}</td>
-        <td class="p-2 border">${stage}</td>
-        <td class="p-2 border">${source}</td>
+        <td class="p-2 border border-gray-200">${name}</td>
+        <td class="p-2 border border-gray-200">${role}</td>
+        <td class="p-2 border border-gray-200">${stage}</td>
+        <td class="p-2 border border-gray-200">${source}</td>
       `;
       candidateTable.appendChild(row);
 
-      // update pipeline chart
-      if (stageData[stage]) {
-        stageData[stage]++;
-      } else {
-        stageData[stage] = 1;
-        pipelineChart.data.labels.push(stage);
-      }
+      stageData[stage] = (stageData[stage] || 0) + 1;
+      sourceData[source] = (sourceData[source] || 0) + 1;
+
+      pipelineChart.data.labels = Object.keys(stageData);
       pipelineChart.data.datasets[0].data = Object.values(stageData);
       pipelineChart.update();
 
-      // update source chart
-      if (sourceData[source]) {
-        sourceData[source]++;
-      } else {
-        sourceData[source] = 1;
-        sourceChart.data.labels.push(source);
-      }
+      sourceChart.data.labels = Object.keys(sourceData);
       sourceChart.data.datasets[0].data = Object.values(sourceData);
       sourceChart.update();
 
-      // clear form
       this.reset();
     });
   </script>
+
 </body>
 </html>
