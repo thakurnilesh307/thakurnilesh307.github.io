@@ -1,162 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CMT Hiring Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .tab-content { display: none; }
-    .tab-active { display: block; }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      background-color: #f5f6fa;
+      color: #333;
+    }
+    .sidebar {
+      width: 240px;
+      background-color: #1f2937;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      margin-bottom: 30px;
+    }
+    .sidebar a {
+      text-decoration: none;
+      color: #cbd5e1;
+      margin: 15px 0;
+      font-size: 16px;
+    }
+    .sidebar a:hover {
+      color: white;
+    }
+    .main {
+      flex-grow: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+    .card h3 {
+      margin-top: 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    select, input, button {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    .status {
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: white;
+    }
+    .status.green { background-color: #10b981; }
+    .status.red { background-color: #ef4444; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-900 h-screen overflow-hidden">
-
-  <div class="flex h-full">
-    <!-- Sidebar -->
-    <aside class="w-60 bg-blue-800 text-white flex flex-col p-6 space-y-6">
-      <h1 class="text-2xl font-bold">CMT Hiring</h1>
-      <nav class="space-y-4">
-        <button onclick="showTab('dashboard')" class="w-full text-left hover:text-blue-200">📊 Dashboard</button>
-        <button onclick="showTab('form')" class="w-full text-left hover:text-blue-200">➕ Add Candidate</button>
-        <button onclick="showTab('table')" class="w-full text-left hover:text-blue-200">📋 Candidate List</button>
-        <button onclick="showTab('charts')" class="w-full text-left hover:text-blue-200">📈 Charts</button>
-      </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="flex-1 p-6 overflow-y-auto">
-
-      <!-- Dashboard -->
-      <section id="dashboard" class="tab-content tab-active grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white rounded-xl p-4 shadow border text-center">
-          <p class="text-sm text-gray-500">Open Roles</p>
-          <p class="text-2xl font-bold text-blue-600">24</p>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow border text-center">
-          <p class="text-sm text-gray-500">Avg Time to Fill</p>
-          <p class="text-2xl font-bold text-blue-600">18 days</p>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow border text-center">
-          <p class="text-sm text-gray-500">Offer Acceptance</p>
-          <p class="text-2xl font-bold text-blue-600">82%</p>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow border text-center">
-          <p class="text-sm text-gray-500">Candidate Diversity</p>
-          <p class="text-2xl font-bold text-blue-600">42%</p>
-        </div>
-      </section>
-
-      <!-- Form -->
-      <section id="form" class="tab-content">
-        <div class="bg-white p-6 rounded-xl shadow border max-w-3xl">
-          <h2 class="text-xl font-semibold mb-4">Add New Candidate</h2>
-          <form id="candidateForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input id="name" type="text" placeholder="Full Name" required class="p-2 border rounded" />
-            <input id="role" type="text" placeholder="Role" required class="p-2 border rounded" />
-            <input id="stage" type="text" placeholder="Stage" required class="p-2 border rounded" />
-            <input id="source" type="text" placeholder="Source" required class="p-2 border rounded" />
-            <div class="sm:col-span-2">
-              <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Add</button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <!-- Table -->
-      <section id="table" class="tab-content">
-        <div class="bg-white p-4 rounded-xl shadow border overflow-x-auto">
-          <h2 class="text-xl font-semibold mb-4">Candidate Table</h2>
-          <table class="min-w-full text-sm border-collapse">
-            <thead class="bg-gray-100">
-              <tr>
-                <th class="border px-4 py-2">Name</th>
-                <th class="border px-4 py-2">Role</th>
-                <th class="border px-4 py-2">Stage</th>
-                <th class="border px-4 py-2">Source</th>
-              </tr>
-            </thead>
-            <tbody id="candidateTableBody" class="bg-white">
-              <!-- JS appends rows here -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Charts -->
-      <section id="charts" class="tab-content grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-4 rounded-xl shadow border">
-          <h2 class="text-lg font-semibold mb-2">Pipeline</h2>
-          <canvas id="pipelineChart" height="200"></canvas>
-        </div>
-        <div class="bg-white p-4 rounded-xl shadow border">
-          <h2 class="text-lg font-semibold mb-2">Source of Hire</h2>
-          <canvas id="sourceChart" height="200"></canvas>
-        </div>
-      </section>
-
-    </main>
+<body>
+  <div class="sidebar">
+    <h2>CMT Dashboard</h2>
+    <a href="#">Overview</a>
+    <a href="#">Candidates</a>
+    <a href="#">Analytics</a>
+    <a href="#">Recruiters</a>
+    <a href="#">Settings</a>
   </div>
 
-  <!-- Scripts -->
+  <div class="main">
+    <div class="header">
+      <h1>Candidate Overview</h1>
+      <div style="width: 200px">
+        <label>Filter by Stage:</label>
+        <select id="stageFilter" onchange="filterData()">
+          <option value="All">All</option>
+          <option value="Phone Interview">Phone Interview</option>
+          <option value="Face to Face">Face to Face</option>
+          <option value="Offer">Offer</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Candidate Stages</h3>
+        <canvas id="barChart"></canvas>
+      </div>
+      <div class="card">
+        <h3>Flagged Candidates</h3>
+        <p><strong id="flaggedCount">0</strong> out of <strong id="totalCount">0</strong> candidates flagged</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Add Candidate</h3>
+      <form onsubmit="addCandidate(event)">
+        <div class="grid">
+          <div>
+            <label for="newStage">Stage:</label>
+            <select id="newStage">
+              <option value="Phone Interview">Phone Interview</option>
+              <option value="Face to Face">Face to Face</option>
+              <option value="Offer">Offer</option>
+            </select>
+          </div>
+          <div>
+            <label for="newFlagged">Flagged?</label>
+            <select id="newFlagged">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit">Add Candidate</button>
+      </form>
+    </div>
+  </div>
+
   <script>
-    const tabs = document.querySelectorAll(".tab-content");
-    function showTab(id) {
-      tabs.forEach(tab => tab.classList.remove("tab-active"));
-      document.getElementById(id).classList.add("tab-active");
+    let rawData = [
+      { stage: "Phone Interview", flagged: "No" },
+      { stage: "Phone Interview", flagged: "No" },
+      { stage: "Phone Interview", flagged: "No" },
+      { stage: "Phone Interview", flagged: "No" },
+      { stage: "Phone Interview", flagged: "Yes" },
+      { stage: "Face to Face", flagged: "No" },
+      { stage: "Face to Face", flagged: "Yes" },
+      { stage: "Face to Face", flagged: "No" },
+      { stage: "Face to Face", flagged: "No" },
+      { stage: "Offer", flagged: "No" },
+      { stage: "Offer", flagged: "No" },
+      { stage: "Offer", flagged: "Yes" },
+      { stage: "Offer", flagged: "No" }
+    ];
+
+    const ctx = document.getElementById("barChart").getContext("2d");
+    const chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Phone Interview", "Face to Face", "Offer"],
+        datasets: [{
+          label: "Count",
+          data: [0, 0, 0],
+          backgroundColor: ["#60a5fa", "#3b82f6", "#2563eb"]
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    function updateChart(data) {
+      const stages = { "Phone Interview": 0, "Face to Face": 0, "Offer": 0 };
+      let flaggedCount = 0;
+
+      data.forEach(row => {
+        if (stages.hasOwnProperty(row.stage)) {
+          stages[row.stage]++;
+        }
+        if (row.flagged === "Yes") flaggedCount++;
+      });
+
+      chart.data.datasets[0].data = [stages["Phone Interview"], stages["Face to Face"], stages["Offer"]];
+      chart.update();
+
+      document.getElementById("flaggedCount").textContent = flaggedCount;
+      document.getElementById("totalCount").textContent = data.length;
     }
 
-    const stageData = { "Applied": 500, "Interviewed": 80, "Offer Sent": 25, "Hired": 15 };
-    const sourceData = { "Referrals": 35, "LinkedIn": 40, "Campus": 15, "Other": 10 };
+    function filterData() {
+      const stage = document.getElementById("stageFilter").value;
+      const filtered = stage === "All" ? rawData : rawData.filter(r => r.stage === stage);
+      updateChart(filtered);
+    }
 
-    const pipelineChart = new Chart(document.getElementById('pipelineChart'), {
-      type: 'bar',
-      data: {
-        labels: Object.keys(stageData),
-        datasets: [{ data: Object.values(stageData), backgroundColor: '#3b82f6' }]
-      },
-      options: { plugins: { legend: { display: false } }, indexAxis: 'y' }
-    });
-
-    const sourceChart = new Chart(document.getElementById('sourceChart'), {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(sourceData),
-        datasets: [{ data: Object.values(sourceData), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'] }]
-      },
-      options: { plugins: { legend: { position: 'bottom' } } }
-    });
-
-    document.getElementById("candidateForm").addEventListener("submit", function (e) {
+    function addCandidate(e) {
       e.preventDefault();
-      const name = document.getElementById("name").value;
-      const role = document.getElementById("role").value;
-      const stage = document.getElementById("stage").value;
-      const source = document.getElementById("source").value;
+      const stage = document.getElementById("newStage").value;
+      const flagged = document.getElementById("newFlagged").value;
+      rawData.push({ stage, flagged });
+      filterData();
+    }
 
-      const row = `<tr>
-        <td class="border px-4 py-2">${name}</td>
-        <td class="border px-4 py-2">${role}</td>
-        <td class="border px-4 py-2">${stage}</td>
-        <td class="border px-4 py-2">${source}</td>
-      </tr>`;
-      document.getElementById("candidateTableBody").insertAdjacentHTML("beforeend", row);
-
-      stageData[stage] = (stageData[stage] || 0) + 1;
-      sourceData[source] = (sourceData[source] || 0) + 1;
-
-      pipelineChart.data.labels = Object.keys(stageData);
-      pipelineChart.data.datasets[0].data = Object.values(stageData);
-      pipelineChart.update();
-
-      sourceChart.data.labels = Object.keys(sourceData);
-      sourceChart.data.datasets[0].data = Object.values(sourceData);
-      sourceChart.update();
-
-      this.reset();
-    });
+    filterData();
   </script>
 </body>
 </html>
