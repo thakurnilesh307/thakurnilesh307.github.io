@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CMT Hiring Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
@@ -35,14 +35,17 @@
       color: #cbd5e1;
       margin: 15px 0;
       font-size: 16px;
+      cursor: pointer;
     }
-    .sidebar a:hover {
+    .sidebar a:hover, .sidebar a.active {
       color: white;
+      font-weight: 600;
     }
     .main {
       flex-grow: 1;
       padding: 30px;
       overflow-y: auto;
+      background: white;
     }
     .header {
       display: flex;
@@ -88,35 +91,49 @@
     }
     .status.green { background-color: #10b981; }
     .status.red { background-color: #ef4444; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #2563eb;
+      color: white;
+    }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>CMT Dashboard</h2>
-    <a href="#" onclick="showSection('overview')">Overview</a>
-    <a href="#" onclick="showSection('candidates')">Candidates</a>
-    <a href="#" onclick="showSection('analytics')">Analytics</a>
+    <a data-page="overview" class="active">Overview</a>
+    <a data-page="candidates">Candidates</a>
+    <a data-page="analytics">Analytics</a>
+    <a data-page="recruiters">Recruiters</a>
+    <a data-page="settings">Settings</a>
   </div>
 
   <div class="main">
-    <div class="header">
-      <h1 id="sectionTitle">Candidate Overview</h1>
-      <div style="width: 200px" id="filterContainer">
-        <label>Filter by Stage:</label>
-        <select id="stageFilter" onchange="filterData()">
-          <option value="All">All</option>
-          <option value="Phone Interview">Phone Interview</option>
-          <option value="Face to Face">Face to Face</option>
-          <option value="Offer">Offer</option>
-        </select>
+    <!-- Overview Page -->
+    <div id="page-overview" class="page" style="display: block;">
+      <div class="header">
+        <h1>Candidate Overview</h1>
+        <div style="width: 200px">
+          <label for="stageFilter">Filter by Stage:</label>
+          <select id="stageFilter" onchange="filterData()">
+            <option value="All">All</option>
+            <option value="Phone Interview">Phone Interview</option>
+            <option value="Face to Face">Face to Face</option>
+            <option value="Offer">Offer</option>
+          </select>
+        </div>
       </div>
-    </div>
 
-    <div id="overviewSection" class="section">
-      <p>Welcome to the CMT Hiring Dashboard. Use the sidebar to navigate through sections.</p>
-    </div>
-
-    <div id="candidatesSection" class="section" style="display:none;">
       <div class="grid">
         <div class="card">
           <h3>Candidate Stages</h3>
@@ -153,12 +170,36 @@
       </div>
     </div>
 
-    <div id="analyticsSection" class="section" style="display:none;">
-      <p>Analytics content coming soon...</p>
+    <!-- Candidates Page -->
+    <div id="page-candidates" class="page" style="display: none;">
+      <h1>All Candidates</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Stage</th>
+            <th>Flagged</th>
+          </tr>
+        </thead>
+        <tbody id="candidatesTableBody">
+          <!-- Rows inserted by JS -->
+        </tbody>
+      </table>
     </div>
-  </div>
+
+    <!-- Analytics Page -->
+    <div id="page-analytics" class="page" style="display: none;">
+      <h1>Analytics</h1>
+      <p>Here is the overall distribution of candidates by stage:</p>
+      <div class="card" style="max-width:600px;">
+        <canvas id="analyticsChart"></canvas>
+      </div>
+    </div>
+
+   
 
   <script>
+    // Data array
     let rawData = [
       { stage: "Phone Interview", flagged: "No" },
       { stage: "Phone Interview", flagged: "No" },
@@ -175,8 +216,9 @@
       { stage: "Offer", flagged: "No" }
     ];
 
+    // --- Chart for Overview ---
     const ctx = document.getElementById("barChart").getContext("2d");
-    const chart = new Chart(ctx, {
+    const overviewChart = new Chart(ctx, {
       type: "bar",
       data: {
         labels: ["Phone Interview", "Face to Face", "Offer"],
@@ -194,7 +236,25 @@
       }
     });
 
-    function updateChart(data) {
+    // --- Chart for Analytics page ---
+    const analyticsCtx = document.getElementById("analyticsChart").getContext("2d");
+    const analyticsChart = new Chart(analyticsCtx, {
+      type: "pie",
+      data: {
+        labels: ["Phone Interview", "Face to Face", "Offer"],
+        datasets: [{
+          label: "Candidate Distribution",
+          data: [0, 0, 0],
+          backgroundColor: ["#60a5fa", "#3b82f6", "#2563eb"]
+        }]
+      },
+      options: {
+        responsive: true
+      }
+    });
+
+    // Update chart function used for Overview chart and flagged counts
+    function updateOverviewChart(data) {
       const stages = { "Phone Interview": 0, "Face to Face": 0, "Offer": 0 };
       let flaggedCount = 0;
 
@@ -205,49 +265,104 @@
         if (row.flagged === "Yes") flaggedCount++;
       });
 
-      chart.data.datasets[0].data = [stages["Phone Interview"], stages["Face to Face"], stages["Offer"]];
-      chart.update();
+      overviewChart.data.datasets[0].data = [stages["Phone Interview"], stages["Face to Face"], stages["Offer"]];
+      overviewChart.update();
 
       document.getElementById("flaggedCount").textContent = flaggedCount;
       document.getElementById("totalCount").textContent = data.length;
     }
 
+    // Update analytics chart with all data (no filter)
+    function updateAnalyticsChart() {
+      const stages = { "Phone Interview": 0, "Face to Face": 0, "Offer": 0 };
+      rawData.forEach(row => {
+        if (stages.hasOwnProperty(row.stage)) {
+          stages[row.stage]++;
+        }
+      });
+      analyticsChart.data.datasets[0].data = [stages["Phone Interview"], stages["Face to Face"], stages["Offer"]];
+      analyticsChart.update();
+    }
+
+    // Filter candidates for overview page and update chart
     function filterData() {
       const stage = document.getElementById("stageFilter").value;
       const filtered = stage === "All" ? rawData : rawData.filter(r => r.stage === stage);
-      updateChart(filtered);
+      updateOverviewChart(filtered);
     }
 
+    // Add new candidate from form
     function addCandidate(e) {
       e.preventDefault();
       const stage = document.getElementById("newStage").value;
       const flagged = document.getElementById("newFlagged").value;
       rawData.push({ stage, flagged });
       filterData();
+      updateCandidatesTable();
+      updateAnalyticsChart();
     }
 
-    function showSection(section) {
-      // Hide all sections
-      document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
-      // Show selected section
-      if (section === 'overview') {
-        document.getElementById('sectionTitle').textContent = 'Overview';
-        document.getElementById('filterContainer').style.display = 'none';
-        document.getElementById('overviewSection').style.display = 'block';
-      } else if (section === 'candidates') {
-        document.getElementById('sectionTitle').textContent = 'Candidate Overview';
-        document.getElementById('filterContainer').style.display = 'block';
-        document.getElementById('candidatesSection').style.display = 'block';
-        filterData();
-      } else if (section === 'analytics') {
-        document.getElementById('sectionTitle').textContent = 'Analytics';
-        document.getElementById('filterContainer').style.display = 'none';
-        document.getElementById('analyticsSection').style.display = 'block';
-      }
+    // Populate candidates table on Candidates page
+    function updateCandidatesTable() {
+      const tbody = document.getElementById("candidatesTableBody");
+      tbody.innerHTML = "";
+      rawData.forEach((candidate, i) => {
+        const tr = document.createElement("tr");
+
+        const indexTd = document.createElement("td");
+        indexTd.textContent = i + 1;
+
+        const stageTd = document.createElement("td");
+        stageTd.textContent = candidate.stage;
+
+        const flaggedTd = document.createElement("td");
+        flaggedTd.textContent = candidate.flagged;
+        flaggedTd.className = candidate.flagged === "Yes" ? "status red" : "status green";
+
+        tr.appendChild(indexTd);
+        tr.appendChild(stageTd);
+        tr.appendChild(flaggedTd);
+
+        tbody.appendChild(tr);
+      });
     }
 
-    // Initialize page with Candidates view
-    showSection('candidates');
+    // Sidebar navigation handling
+    const sidebarLinks = document.querySelectorAll(".sidebar a");
+    sidebarLinks.forEach(link => {
+      link.addEventListener("click", () => {
+        // Remove active class from all links
+        sidebarLinks.forEach(l => l.classList.remove("active"));
+        // Add active to clicked link
+        link.classList.add("active");
+
+        // Hide all pages
+        document.querySelectorAll(".page").forEach(page => page.style.display = "none");
+
+        // Show the selected page
+        const pageId = "page-" + link.dataset.page;
+        const selectedPage = document.getElementById(pageId);
+        if (selectedPage) {
+          selectedPage.style.display = "block";
+
+          // Update data and charts if needed
+          if (pageId === "page-overview") {
+            filterData();
+          }
+          else if (pageId === "page-candidates") {
+            updateCandidatesTable();
+          }
+          else if (pageId === "page-analytics") {
+            updateAnalyticsChart();
+          }
+        }
+      });
+    });
+
+    // Initial render
+    filterData();
+    updateCandidatesTable();
+    updateAnalyticsChart();
   </script>
 </body>
 </html>
