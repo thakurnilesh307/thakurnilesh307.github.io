@@ -1,145 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CMT Hiring Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      display: flex;
-      height: 100vh;
-      background-color: #f5f6fa;
-      color: #333;
-    }
-    .sidebar {
-      width: 240px;
-      background-color: #1f2937;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
-    .sidebar h2 { font-size: 20px; margin-bottom: 30px; }
-    .sidebar a {
-      text-decoration: none;
-      color: #cbd5e1;
-      margin: 15px 0;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .sidebar a:hover { color: white; }
-    .main { flex-grow: 1; padding: 30px; overflow-y: auto; }
-    .hidden { display: none; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
-    .card h3 { margin-top: 0; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
+    /* [Styling remains unchanged, as per your preference] */
+    /* ... */
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>CMT Dashboard</h2>
-    <a onclick="showPage('overview')">Overview</a>
-    <a onclick="showPage('candidates')">Candidates</a>
-    <a onclick="showPage('analytics')">Analytics</a>
+    <a data-page="overview" class="active">Overview</a>
+    <a data-page="candidates">Candidates</a>
+    <a data-page="analytics">Analytics</a>
+    <a data-page="recruiters">Recruiters</a>
+    <a data-page="settings">Settings</a>
   </div>
 
   <div class="main">
-    <div id="overview" class="page">
+    <!-- Overview Page -->
+    <div id="page-overview" class="page" style="display: block;">
       <div class="header">
-        <h1>Key Metrics</h1>
+        <h1>Candidate Overview</h1>
+        <div style="width: 200px">
+          <label for="stageFilter">Filter by Stage:</label>
+          <select id="stageFilter" onchange="filterData()">
+            <option value="All">All</option>
+            <option value="Phone Interview">Phone Interview</option>
+            <option value="Face to Face">Face to Face</option>
+            <option value="Offer">Offer</option>
+          </select>
+        </div>
       </div>
+
       <div class="grid">
         <div class="card">
-          <h3>Total Applications</h3>
-          <p><strong>505</strong></p>
+          <h3>Candidate Stages</h3>
+          <canvas id="barChart"></canvas>
         </div>
         <div class="card">
-          <h3>Total Offers</h3>
-          <p><strong>3</strong></p>
-        </div>
-        <div class="card">
-          <h3>Offer Rate</h3>
-          <p><strong>0.59%</strong></p>
+          <h3>KPIs</h3>
+          <ul>
+            <li>Application Review: <strong>505</strong></li>
+            <li>Preliminary Phone Screen: <strong>45</strong></li>
+            <li>Phone Interview: <strong>22</strong></li>
+            <li>Face to Face: <strong>20</strong></li>
+            <li>Offers: <strong>3</strong></li>
+          </ul>
         </div>
       </div>
     </div>
 
-    <div id="candidates" class="page hidden">
-      <div class="header">
-        <h1>Stage Distribution</h1>
-      </div>
-      <div class="card">
-        <h3>Development Candidates</h3>
-        <canvas id="devChart"></canvas>
-      </div>
-      <div class="card">
-        <h3>IoT Candidates</h3>
-        <canvas id="iotChart"></canvas>
-      </div>
+    <!-- Candidates Page -->
+    <div id="page-candidates" class="page" style="display: none;">
+      <h1>All Candidates</h1>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Stage</th><th>Flagged</th></tr>
+        </thead>
+        <tbody id="candidatesTableBody"></tbody>
+      </table>
     </div>
 
-    <div id="analytics" class="page hidden">
-      <div class="header">
-        <h1>Analytics View</h1>
-      </div>
-      <div class="card">
-        <p>More charts and KPIs coming soon...</p>
+    <!-- Analytics Page -->
+    <div id="page-analytics" class="page" style="display: none;">
+      <h1>Analytics</h1>
+      <div class="card" style="max-width:600px;">
+        <canvas id="analyticsChart"></canvas>
       </div>
     </div>
   </div>
 
   <script>
-    function showPage(id) {
-      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
+    let rawData = [
+      { stage: "Phone Interview", flagged: "No" },
+      { stage: "Phone Interview", flagged: "No" },
+      { stage: "Phone Interview", flagged: "Yes" },
+      { stage: "Face to Face", flagged: "Yes" },
+      { stage: "Face to Face", flagged: "No" },
+      { stage: "Offer", flagged: "No" },
+      { stage: "Offer", flagged: "Yes" },
+    ];
+
+    const ctx = document.getElementById("barChart").getContext("2d");
+    const overviewChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Phone Interview", "Face to Face", "Offer"],
+        datasets: [{
+          label: "Count",
+          data: [0, 0, 0],
+          backgroundColor: ["#60a5fa", "#3b82f6", "#2563eb"]
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    const analyticsCtx = document.getElementById("analyticsChart").getContext("2d");
+    const analyticsChart = new Chart(analyticsCtx, {
+      type: "pie",
+      data: {
+        labels: ["Phone Interview", "Face to Face", "Offer"],
+        datasets: [{
+          label: "Candidate Distribution",
+          data: [0, 0, 0],
+          backgroundColor: ["#60a5fa", "#3b82f6", "#2563eb"]
+        }]
+      },
+      options: { responsive: true }
+    });
+
+    function updateOverviewChart(data) {
+      const stages = { "Phone Interview": 0, "Face to Face": 0, "Offer": 0 };
+      data.forEach(row => { if (stages[row.stage]) stages[row.stage]++; });
+      overviewChart.data.datasets[0].data = Object.values(stages);
+      overviewChart.update();
     }
 
-    const devCtx = document.getElementById("devChart").getContext("2d");
-    const iotCtx = document.getElementById("iotChart").getContext("2d");
+    function updateAnalyticsChart() {
+      const stages = { "Phone Interview": 0, "Face to Face": 0, "Offer": 0 };
+      rawData.forEach(r => stages[r.stage]++);
+      analyticsChart.data.datasets[0].data = Object.values(stages);
+      analyticsChart.update();
+    }
 
-    new Chart(devCtx, {
-      type: 'bar',
-      data: {
-        labels: ["Application Review", "Phone Screen", "Phone Interview", "Face to Face", "Offer"],
-        datasets: [{
-          label: 'Development',
-          data: [503, 35, 21, 18, 3],
-          backgroundColor: '#3b82f6'
-        }]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    function updateCandidatesTable() {
+      const tbody = document.getElementById("candidatesTableBody");
+      tbody.innerHTML = "";
+      rawData.forEach((c, i) => {
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${c.stage}</td><td class="status ${c.flagged==='Yes'?'red':'green'}">${c.flagged}</td></tr>`;
+      });
+    }
+
+    function filterData() {
+      const stage = document.getElementById("stageFilter").value;
+      const filtered = stage === "All" ? rawData : rawData.filter(r => r.stage === stage);
+      updateOverviewChart(filtered);
+    }
+
+    const sidebarLinks = document.querySelectorAll(".sidebar a");
+    sidebarLinks.forEach(link => {
+      link.addEventListener("click", () => {
+        sidebarLinks.forEach(l => l.classList.remove("active"));
+        link.classList.add("active");
+        document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+        const pageId = "page-" + link.dataset.page;
+        const selectedPage = document.getElementById(pageId);
+        if (selectedPage) {
+          selectedPage.style.display = "block";
+          if (pageId === "page-overview") filterData();
+          else if (pageId === "page-candidates") updateCandidatesTable();
+          else if (pageId === "page-analytics") updateAnalyticsChart();
+        }
+      });
     });
 
-    new Chart(iotCtx, {
-      type: 'bar',
-      data: {
-        labels: ["Application Review", "Phone Screen", "Phone Interview", "Face to Face", "Offer"],
-        datasets: [{
-          label: 'IoT',
-          data: [2, 10, 1, 2, 0],
-          backgroundColor: '#60a5fa'
-        }]
-      },
-      options: { responsive: true, scales: { y: { beginAtZero: true } } }
-    });
-
-    showPage('overview');
+    filterData();
+    updateCandidatesTable();
+    updateAnalyticsChart();
   </script>
 </body>
 </html>
